@@ -9,7 +9,7 @@ jobs:
       matrix:
         flags: '${{ fromJSON(needs.setup.outputs.matrix).flags }}'
         os:
-          - "ubuntu-latest"
+          - ubuntu-latest
         perl: '${{ fromJSON(needs.setup.outputs.matrix).perl }}'
       max-parallel: 5
     uses: sanko/workflow_testing/.github/workflows/matrix.yml@main
@@ -24,6 +24,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        exclude:
+          - flags: -Dusequadmath
+            os: macos-latest
         flags: '${{ fromJSON(needs.setup.outputs.matrix).flags }}'
         os:
           - macos-latest
@@ -59,7 +62,6 @@ jobs:
       - env:
           DATA: |
             {
-              "os": ["ubuntu-latest", "macos-latest"],
               "perl": ["5.38.0", "5.36.0"],
               "flags": ["", "--64int", "--thread", "--ld", "--multi", "-Dusequadmath"]
             }
