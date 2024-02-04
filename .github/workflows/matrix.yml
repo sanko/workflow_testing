@@ -23,16 +23,6 @@ jobs:
 
           perlbrew install --switch --verbose --as cache-${{ inputs.os }}${{ inputs.perl }}${{ inputs.flags }} -j 12 --notest --noman ${{ inputs.flags }} perl-${{ inputs.perl }}
         shell: bash
-  prereq:
-    runs-on: '${{ inputs.os }}'
-    steps:
-      - name: 'Install prereq in ${{ inputs.os }}'
-        run: "echo \"Install prereq in ${{ inputs.os }}\"\n"
-  test:
-    runs-on: '${{ inputs.os }}'
-    steps:
-      - name: 'Test in ${{ inputs.os }}'
-        run: "echo \"Test in ${{ inputs.os }}\"\n"
       - id: perl
         name: Get Perl Version
         run: "perl -v > test-output-${{ inputs.os }}-${{ inputs.perl }}${{ inputs.flags }}.txt\n"
