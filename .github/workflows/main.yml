@@ -22,6 +22,7 @@ jobs:
               "perl": ["5.38.0", "5.36.0"]
             }
         run: |
+          jq -rn 'env.DATA | fromjson | @json "matrix=\(.)"'
           jq -rn 'env.DATA | fromjson | @json "matrix=\(.)"' > $GITHUB_OUTPUT
           
   common-matrix-job:
@@ -47,7 +48,7 @@ jobs:
       - setup
     strategy:
       matrix:
-        os: ${{ fromJSON(needs.common-matrix-job.outputs.os) }}
+        os:    ${{ fromJSON(needs.common-matrix-job.outputs.os) }}
         perl:  ${{ fromJSON(needs.setup.outputs.matrix.perl) }}
       fail-fast: true
       max-parallel: 1
