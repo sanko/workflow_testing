@@ -1,7 +1,7 @@
 ---
 jobs:
   macos:
-    name: 'macOS: perl v${{matrix.perl}}'
+    name: 'v${{matrix.perl}}'
     needs:
       - setup
     strategy:
@@ -10,13 +10,14 @@ jobs:
         os:
           - macos-latest
         perl: '${{ fromJSON(needs.setup.outputs.matrix).perl }}'
+        flags: '${{ fromJSON(needs.setup.outputs.matrix).flags }}'
       max-parallel: 5
     uses: sanko/workflow_testing/.github/workflows/matrix.yml@main
     with:
       os: '${{ matrix.os }}'
       perl: '${{ matrix.perl }}'
   linux:
-    name: 'Linux: perl v${{matrix.perl}}'
+    name: 'v${{matrix.perl}}'
     needs:
       - setup
     strategy:
@@ -25,6 +26,7 @@ jobs:
         os:
           - ubuntu-latest
         perl: '${{ fromJSON(needs.setup.outputs.matrix).perl }}'
+        flags: '${{ fromJSON(needs.setup.outputs.matrix).flags }}'
       max-parallel: 5
     uses: sanko/workflow_testing/.github/workflows/matrix.yml@main
     with:
@@ -56,12 +58,13 @@ jobs:
           DATA: |
             {
               "os": ["ubuntu-latest", "macos-latest"],
-              "perl": ["5.38.0", "5.36.0"]
+              "perl": ["5.38.0", "5.36.0"],
+              "flags": []
             }
         id: matrix
         run: "jq -rn 'env.DATA | fromjson | @json \"matrix=\\(.)\"' > $GITHUB_OUTPUT\n"
   win32:
-    name: 'Windows: perl v${{matrix.perl}}'
+    name: 'v${{matrix.perl}}'
     needs:
       - setup
     strategy:
@@ -70,6 +73,7 @@ jobs:
         os:
           - windows-2019
         perl: '${{ fromJSON(needs.setup.outputs.matrix).perl }}'
+        flags: '${{ fromJSON(needs.setup.outputs.matrix).flags }}'
       max-parallel: 5
     uses: sanko/workflow_testing/.github/workflows/windows.yml@main
     with:
