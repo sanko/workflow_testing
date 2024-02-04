@@ -15,6 +15,7 @@ jobs:
       - if: "${{  steps.cache-perl.outputs.cache-hit != 'true' && inputs.os == 'windows-2019' }}"
         name: Init dev env on Windows
         run: |
+          # skip installing perl if it is already installed.
           if (!(Test-Path "C:\strawberry\perl\bin")) {
             choco install strawberryperl
           }
@@ -39,7 +40,6 @@ jobs:
 
           popd
           set PATH=C:\Users\runneradmin\perl5\perlbrew\bin;%PATH%
-        shell: cmd
       - if: "${{ steps.cache-perl.outputs.cache-hit != 'true' && inputs.os != 'windows-2019' }}"
         name: 'Build perl ${{ inputs.perl }} with perlbrew'
         run: |
