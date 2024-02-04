@@ -1,7 +1,7 @@
 ---
 jobs:
   build:
-    name: 'Build Perl ${{ inputs.perl }}${{ inputs.flags }}'
+    name: ${{ inputs.flags || 'Default' }}
     runs-on: '${{ inputs.os }}'
     steps:
       - name: 'Build in ${{ inputs.os }}'
