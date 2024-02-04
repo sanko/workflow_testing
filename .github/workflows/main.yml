@@ -1,6 +1,6 @@
 ---
 jobs:
-  meta:
+  linux:
     name: '${{matrix.os}}/v${{matrix.perl}}'
     needs:
       - setup
@@ -16,10 +16,29 @@ jobs:
       flags: '${{ matrix.flags }}'
       os: '${{ matrix.os }}'
       perl: '${{ matrix.perl }}'
+  macos:
+    name: 'macOS/v${{matrix.perl}}'
+    needs:
+      - setup
+    strategy:
+      fail-fast: false
+      matrix:
+        flags: '${{ fromJSON(needs.setup.outputs.matrix).flags }}'
+        os:
+          - macos-latest
+        perl: '${{ fromJSON(needs.setup.outputs.matrix).perl }}'
+      max-parallel: 5
+    uses: sanko/workflow_testing/.github/workflows/matrix.yml@main
+    with:
+      flags: '${{ matrix.flags }}'
+      os: '${{ matrix.os }}'
+      perl: '${{ matrix.perl }}'
   results:
     name: Results
     needs:
-      - meta
+      - macos
+      - win32
+      - linux
     runs-on: ubuntu-latest
     steps:
       - name: Do something
@@ -39,13 +58,29 @@ jobs:
       - env:
           DATA: |
             {
-              "os": ["ubuntu-latest", "macos-latest", "windows-2019"],
+              "os": ["ubuntu-latest", "macos-latest"],
               "perl": ["5.38.0", "5.36.0"],
               "flags": ["", "--64int", "--thread", "--ld", "--multi", "-Dusequadmath"]
             }
         id: matrix
         run: "jq -rn 'env.DATA | fromjson | @json \"matrix=\\(.)\"' > $GITHUB_OUTPUT\n"
-
+  win32:
+    name: 'Windows/v${{matrix.perl}}'
+    needs:
+      - setup
+    strategy:
+      fail-fast: false
+      matrix:
+        flags: '${{ fromJSON(needs.setup.outputs.matrix).flags }}'
+        os:
+          - windows-2019
+        perl: '${{ fromJSON(needs.setup.outputs.matrix).perl }}'
+      max-parallel: 5
+    uses: sanko/workflow_testing/.github/workflows/matrix.yml@main
+    with:
+      flags: '${{ matrix.flags }}'
+      os: '${{ matrix.os }}'
+      perl: '${{ matrix.perl }}'
 name: Mega Matrix CI
 on:
   push: ~
