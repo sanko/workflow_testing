@@ -1,0 +1,64 @@
+name: Matrix module
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      perl:
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: Build Perl ${{ inputs.perl }}
+    runs-on: ${{ inputs.os }}
+    steps:
+      - name: Build in ${{ inputs.os }}
+        run: |
+          echo "Build in ${{ inputs.os }}"
+      - name: Cache perl
+        uses: actions/cache@v4
+        id: cache-perl
+        with:
+          path: ~/perl5/perlbrew/
+          key: ${{ inputs.os }}-perl-v${{ inputs.perl }}${{ inputs.flags }}
+      - name: "Build perl ${{ inputs.perl }} with perlbrew"
+        if: ${{ steps.cache-perl.outputs.cache-hit != 'true' && inputs.os != 'windows-2019' }}
+        shell: bash
+        run: >
+             \curl -L https://install.perlbrew.pl | bash
+
+             source ~/perl5/perlbrew/etc/bashrc
+
+             perlbrew available
+
+             perlbrew install-cpanm
+
+             perlbrew install --switch --verbose --as cache-${{ inputs.os }}${{ inputs.perl }}${{ inputs.flags }} -j 12 --notest --noman ${{ inputs.flags }} perl-${{ inputs.perl }}
+
+  prereq:
+    runs-on: ${{ inputs.os }}
+    steps:
+      - name: Install prereq in ${{ inputs.os }}
+        run: |
+          echo "Install prereq in ${{ inputs.os }}"
+
+  test:
+    runs-on: ${{ inputs.os }}
+    steps:
+      - name: Test in ${{ inputs.os }}
+        run: |
+          echo "Test in ${{ inputs.os }}"
+      - id: perl
+        name: Get Perl Version
+        run: |
+          perl -v > test-output-${{ inputs.os }}-${{ inputs.perl }}.txt
+      - name: Upload results as artifact
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: test-output-${{ inputs.os }}-${{ inputs.perl }}
+          path: test-output-${{ inputs.os }}-${{ inputs.perl }}.txt
+          if-no-files-found: error
+          retention-days: 1

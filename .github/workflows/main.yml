@@ -19,11 +19,29 @@ jobs:
         env:
           DATA: |
             {
-              "os": ["ubuntu-latest", "macos-latest", "windows-2019"],
+              "os": ["ubuntu-latest", "macos-latest"],
               "perl": ["5.38.0", "5.36.0"]
             }
         run: |
           jq -rn 'env.DATA | fromjson | @json "matrix=\(.)"' > $GITHUB_OUTPUT
+
+  win32:
+    name: "OS: windows-2019, Perl: ${{matrix.perl}}"
+    needs:
+      - setup
+    strategy:
+      matrix:
+        os:
+          - windows-2019
+        perl:  ${{ fromJSON(needs.setup.outputs.matrix).perl }}
+      fail-fast: false
+      max-parallel: 5
+    # environment:
+    #   name: ${{ matrix.environment }}
+    uses: sanko/workflow_testing/.github/workflows/win32.yml@main
+    with:
+      os: windows-2019
+      perl: ${{ matrix.perl }}
 
   build:
     name: "OS: ${{matrix.os}}, Perl: ${{matrix.perl}}"
@@ -47,6 +65,7 @@ jobs:
     needs:
       - setup
       - build
+      - win32
     runs-on: ubuntu-latest
     steps:
       - name: Do something
