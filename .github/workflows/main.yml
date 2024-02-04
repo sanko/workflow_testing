@@ -12,7 +12,7 @@ jobs:
   common-matrix-job:
     runs-on: ubuntu-latest
     outputs: 
-      os: ${{ steps.environments.outputs.os }}
+      os: ${{ steps.matrix.outputs.os }}
     steps:
       - name: Generate Matrix
         id: matrix
