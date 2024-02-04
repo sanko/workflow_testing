@@ -17,10 +17,10 @@ jobs:
         run: |
           \curl -L https://install.perlbrew.pl | bash
           source ~/perl5/perlbrew/etc/bashrc
-          
+
           perlbrew available
           perlbrew install-cpanm
-          
+
           perlbrew install --switch --verbose --as cache-${{ inputs.os }}${{ inputs.perl }}${{ inputs.flags }} -j 12 --notest --noman ${{ inputs.flags }} perl-${{ inputs.perl }}
         shell: bash
   prereq:
@@ -35,13 +35,13 @@ jobs:
         run: "echo \"Test in ${{ inputs.os }}\"\n"
       - id: perl
         name: Get Perl Version
-        run: "perl -v > test-output-${{ inputs.os }}-${{ inputs.perl }}.txt\n"
+        run: "perl -v > test-output-${{ inputs.os }}-${{ inputs.perl }}${{ inputs.flags }}.txt\n"
       - name: Upload results as artifact
         uses: actions/upload-artifact@v4.0.0
         with:
           if-no-files-found: error
-          name: 'test-output-${{ inputs.os }}-${{ inputs.perl }}'
-          path: 'test-output-${{ inputs.os }}-${{ inputs.perl }}-${{ inputs.flags }}.txt'
+          name: 'test-output-${{ inputs.os }}-${{ inputs.perl }}${{ inputs.flags }}'
+          path: 'test-output-${{ inputs.os }}-${{ inputs.perl }}${{ inputs.flags }}.txt'
           retention-days: 1
 name: Windows
 on:
