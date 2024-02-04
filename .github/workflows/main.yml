@@ -49,7 +49,7 @@ jobs:
     strategy:
       matrix:
         os:    ${{ fromJSON(needs.common-matrix-job.outputs.os) }}
-        perl:  ${{ fromJSON(needs.setup.outputs.matrix.perl) }}
+        perl:  ${{ fromJSON(needs.setup.outputs.matrix).perl}}
       fail-fast: true
       max-parallel: 1
     # environment:
