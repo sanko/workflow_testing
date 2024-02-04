@@ -17,9 +17,9 @@ jobs:
   results:
     name: Results
     needs:
-      - setup
       - build
       - win32
+      - linux
     runs-on: ubuntu-latest
     steps:
       - name: Do something
@@ -44,8 +44,23 @@ jobs:
             }
         id: matrix
         run: "jq -rn 'env.DATA | fromjson | @json \"matrix=\\(.)\"' > $GITHUB_OUTPUT\n"
+  linux:
+    name: 'Linux: perl v${{matrix.perl}}'
+    needs:
+      - setup
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+        perl: '${{ fromJSON(needs.setup.outputs.matrix).perl }}'
+      max-parallel: 5
+    uses: sanko/workflow_testing/.github/workflows/matrix.yml@main
+    with:
+      os: windows-2019
+      perl: '${{ matrix.perl }}'
   win32:
-    name: 'OS: windows-2019, Perl: ${{matrix.perl}}'
+    name: 'Windows: perl v${{matrix.perl}}'
     needs:
       - setup
     strategy:
