@@ -37,7 +37,9 @@ jobs:
       group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{matrix.os}}-${{matrix.perl}}
       cancel-in-progress: true
     steps:
-      - run: echo "Hi!'
+      - name: Build in ${{ inputs.os }}
+        run: |
+          echo "Build in ${{ inputs.os }}"
           
   test:
     needs:
