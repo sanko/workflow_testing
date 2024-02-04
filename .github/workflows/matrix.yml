@@ -27,6 +27,7 @@ jobs:
 
           popd
           set PATH=C:\Users\runneradmin\perl5\perlbrew\bin;%PATH%
+          curl -L https://cpanmin.us | perl - App::cpanminus
       - if: "${{ steps.cache-perl.outputs.cache-hit != 'true' && inputs.os != 'windows-2019' }}"
         name: Build perl on other platforms with perlbrew
         run: |
