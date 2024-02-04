@@ -8,7 +8,7 @@ jobs:
       fail-fast: false
       matrix:
         flags: '${{ fromJSON(needs.setup.outputs.matrix).flags }}'
-        os: '${{ fromJSON(needs.setup.outputs.matrix).os }}-latest'
+        os: '${{ fromJSON(needs.setup.outputs.matrix).os }}'
         perl: '${{ fromJSON(needs.setup.outputs.matrix).perl }}'
       max-parallel: 5
     uses: sanko/workflow_testing/.github/workflows/matrix.yml@main
