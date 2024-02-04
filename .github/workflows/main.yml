@@ -55,7 +55,7 @@ jobs:
           - windows-2019
         perl: '${{ fromJSON(needs.setup.outputs.matrix).perl }}'
       max-parallel: 5
-    uses: sanko/workflow_testing/.github/workflows/win32.yml@main
+    uses: sanko/workflow_testing/.github/workflows/windows.yml@main
     with:
       os: windows-2019
       perl: '${{ matrix.perl }}'
