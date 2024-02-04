@@ -9,6 +9,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - id: matrix
+        env:
+          DATA: |
+            {
+              "os": ["ubuntu-latest", "macos-latest", "windows-2019"],
+              "perl": ["5.38.0", "5.36.0"]
+            }
+        run: |
+          jq -rn 'env.DATA | fromjson | @json "matrix=\(.)"' > $GITHUB_OUTPUT
+          
   common-matrix-job:
     runs-on: ubuntu-latest
     outputs: 
