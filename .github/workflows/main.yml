@@ -1,21 +1,5 @@
 ---
 jobs:
-  macos:
-    name: 'macOS/v${{matrix.perl}}'
-    needs:
-      - setup
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - macos-latest
-        perl: '${{ fromJSON(needs.setup.outputs.matrix).perl }}'
-        flags: '${{ fromJSON(needs.setup.outputs.matrix).flags }}'
-      max-parallel: 5
-    uses: sanko/workflow_testing/.github/workflows/matrix.yml@main
-    with:
-      os: '${{ matrix.os }}'
-      perl: '${{ matrix.perl }}'
   linux:
     name: 'Linux/v${{matrix.perl}}'
     needs:
@@ -23,10 +7,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        flags: '${{ fromJSON(needs.setup.outputs.matrix).flags }}'
         os:
           - ubuntu-latest
         perl: '${{ fromJSON(needs.setup.outputs.matrix).perl }}'
+      max-parallel: 5
+    uses: sanko/workflow_testing/.github/workflows/matrix.yml@main
+    with:
+      os: '${{ matrix.os }}'
+      perl: '${{ matrix.perl }}'
+  macos:
+    name: 'macOS/v${{matrix.perl}}'
+    needs:
+      - setup
+    strategy:
+      fail-fast: false
+      matrix:
         flags: '${{ fromJSON(needs.setup.outputs.matrix).flags }}'
+        os:
+          - macos-latest
+        perl: '${{ fromJSON(needs.setup.outputs.matrix).perl }}'
       max-parallel: 5
     uses: sanko/workflow_testing/.github/workflows/matrix.yml@main
     with:
@@ -70,10 +70,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        flags: '${{ fromJSON(needs.setup.outputs.matrix).flags }}'
         os:
           - windows-2019
         perl: '${{ fromJSON(needs.setup.outputs.matrix).perl }}'
-        flags: '${{ fromJSON(needs.setup.outputs.matrix).flags }}'
       max-parallel: 5
     uses: sanko/workflow_testing/.github/workflows/windows.yml@main
     with:

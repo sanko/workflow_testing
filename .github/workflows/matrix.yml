@@ -1,7 +1,7 @@
 ---
 jobs:
   build:
-    name: 'Build Perl ${{ inputs.perl }}'
+    name: 'Build Perl ${{ inputs.perl }}${{ inputs.flags }}'
     runs-on: '${{ inputs.os }}'
     steps:
       - name: 'Build in ${{ inputs.os }}'
@@ -47,6 +47,9 @@ name: Matrix module
 on:
   workflow_call:
     inputs:
+      flags:
+        required: true
+        type: string
       os:
         required: true
         type: string
