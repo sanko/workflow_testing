@@ -38,7 +38,6 @@ jobs:
       group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{matrix.os}}-${{matrix.perl}}
       cancel-in-progress: true
     steps:
-      - name: Build in ${{ inputs.os }}
       - id: test1
         name: Get Perl Version
         run: |
