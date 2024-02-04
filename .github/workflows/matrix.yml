@@ -41,7 +41,9 @@ jobs:
         shell: bash
       - id: perl
         name: Get Perl Version
-        run: "perl -v > test-output-${{ inputs.os }}-${{ inputs.perl }}${{ inputs.flags }}.txt\n"
+        run: |
+          perl -V
+          perl -v > test-output-${{ inputs.os }}-${{ inputs.perl }}${{ inputs.flags }}.txt
       - name: Upload results as artifact
         uses: actions/upload-artifact@v4.0.0
         with:
