@@ -1,13 +1,14 @@
 ---
 jobs:
-  build:
-    name: 'OS: ${{matrix.os}}, Perl: ${{matrix.perl}}'
+  macos:
+    name: 'macOS: perl v${{matrix.perl}}'
     needs:
       - setup
     strategy:
       fail-fast: false
       matrix:
-        os: '${{ fromJSON(needs.setup.outputs.matrix).os }}'
+        os:
+          - macos-latest
         perl: '${{ fromJSON(needs.setup.outputs.matrix).perl }}'
       max-parallel: 5
     uses: sanko/workflow_testing/.github/workflows/matrix.yml@main
@@ -32,7 +33,7 @@ jobs:
   results:
     name: Results
     needs:
-      - build
+      - macos
       - win32
       - linux
     runs-on: ubuntu-latest
