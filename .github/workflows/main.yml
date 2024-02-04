@@ -10,26 +10,27 @@ concurrency:
 
 jobs:
   common-matrix-job:
-    name: Generate Matrix
     runs-on: ubuntu-latest
     outputs: 
       os: ${{ steps.environments.outputs.os }}
     steps:
-      - name: Generate Matrix
-        id: matrix
-        env:
-          DATA: |
-            {
-              "os": ["ubuntu-latest", "macos-latest", "windows-2019"],
-              "perl": ["5.38.0", "5.36.0"]
-            }
+      - name: Build Environments Array
+        id: environments
         run: |
-          jq -rn 'env.DATA | fromjson | @json "matrix=\(.)"' > $GITHUB_OUTPUT
+          osArray=()
+          osArray+=("windows-2019")
+          osArray+=("ubuntu-latest")
+          osArray+=("macos-latest")
+          osArray=$(jq --compact-output --null-input '$ARGS.positional' --args -- "${osArray[@]}")
+          echo "Updated environments list: $osArray"
+          echo "os=$osArray" >> $GITHUB_OUTPUT
+        shell: bash
+  
   reusable:
     needs: [common-matrix-job]
     strategy:
       matrix:
-        ${{ fromJSON(needs.common-matrix-job.outputs.matrix) }}
+        os: ${{ fromJSON(needs.common-matrix-job.outputs.os) }}
       fail-fast: true
       max-parallel: 1
     # environment:
