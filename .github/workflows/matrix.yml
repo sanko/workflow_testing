@@ -1,30 +1,33 @@
-name: Test 88 (reusable)
+name: Matrix module
 
 on:
   workflow_call:
     inputs:
-      stage:
+      os:
         required: true
+        type: string
+      perl:
+        required: false
         type: string
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os }}
     steps:
-      - name: Build in ${{ inputs.stage }}
+      - name: Build in ${{ inputs.os }}
         run: |
-          echo "Build in ${{ inputs.stage }}"
+          echo "Build in ${{ inputs.os }}"
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os }}
     steps:
-      - name: Test in ${{ inputs.stage }}
+      - name: Test in ${{ inputs.os }}
         run: |
-          echo "Test in ${{ inputs.stage }}"
+          echo "Test in ${{ inputs.os }}"
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os }}
     steps:
-      - name: Deploy in ${{ inputs.stage }}
+      - name: Deploy in ${{ inputs.os }}
         run: |
-          echo "Deploy in ${{ inputs.stage }}"
+          echo "Deploy in ${{ inputs.os }}"
