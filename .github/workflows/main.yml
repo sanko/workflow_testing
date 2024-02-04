@@ -14,6 +14,21 @@ jobs:
     with:
       os: '${{ matrix.os }}'
       perl: '${{ matrix.perl }}'
+  linux:
+    name: 'Linux: perl v${{matrix.perl}}'
+    needs:
+      - setup
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+        perl: '${{ fromJSON(needs.setup.outputs.matrix).perl }}'
+      max-parallel: 5
+    uses: sanko/workflow_testing/.github/workflows/matrix.yml@main
+    with:
+      os: '${{ matrix.os }}'
+      perl: '${{ matrix.perl }}'
   results:
     name: Results
     needs:
@@ -44,21 +59,6 @@ jobs:
             }
         id: matrix
         run: "jq -rn 'env.DATA | fromjson | @json \"matrix=\\(.)\"' > $GITHUB_OUTPUT\n"
-  linux:
-    name: 'Linux: perl v${{matrix.perl}}'
-    needs:
-      - setup
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-latest
-        perl: '${{ fromJSON(needs.setup.outputs.matrix).perl }}'
-      max-parallel: 5
-    uses: sanko/workflow_testing/.github/workflows/matrix.yml@main
-    with:
-      os: windows-2019
-      perl: '${{ matrix.perl }}'
   win32:
     name: 'Windows: perl v${{matrix.perl}}'
     needs:
@@ -72,7 +72,7 @@ jobs:
       max-parallel: 5
     uses: sanko/workflow_testing/.github/workflows/windows.yml@main
     with:
-      os: windows-2019
+      os: '${{ matrix.os }}'
       perl: '${{ matrix.perl }}'
 name: Mega Matrix CI
 on:
