@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 jobs:
@@ -22,36 +22,17 @@ jobs:
               "perl": ["5.38.0", "5.36.0"]
             }
         run: |
-          jq -rn 'env.DATA | fromjson | @json "matrix=\(.)"'
-          jq -rn 'env.DATA | fromjson | @json "matrix=\(.)"' > $GITHUB_OUTPUT
-          
-  common-matrix-job:
-    runs-on: ubuntu-latest
-    outputs: 
-      os: ${{ steps.environments.outputs.os }}
-    steps:
-      - name: Build Environments Array
-        id: environments
-        run: |
-          osArray=()
-          osArray+=("windows-2019")
-          osArray+=("ubuntu-latest")
-          osArray+=("macos-latest")
-          osArray=$(jq --compact-output --null-input '$ARGS.positional' --args -- "${osArray[@]}")
-          echo "Updated environments list: $osArray"
-          echo "os=$osArray" >> $GITHUB_OUTPUT
-        shell: bash
+          jq -rn 'env.DATA | fromjson | @json "matrix=\(.)"' > $GITHUB_OUTPUT     
   
-  reusable:
-    needs: 
-      - common-matrix-job
+  build:
+    needs:
       - setup
     strategy:
       matrix:
-        os:    ${{ fromJSON(needs.common-matrix-job.outputs.os) }}
+        os:  ${{ fromJSON(needs.setup.outputs.matrix).os}}
         perl:  ${{ fromJSON(needs.setup.outputs.matrix).perl}}
       fail-fast: true
-      max-parallel: 1
+      max-parallel: 5
     # environment:
     #   name: ${{ matrix.environment }}
     uses: sanko/workflow_testing/.github/workflows/matrix.yml@main
@@ -60,8 +41,8 @@ jobs:
 
   common-job:
     needs: 
-      - common-matrix-job
-      - reusable
+      - setup
+      - build
     runs-on: ubuntu-latest
     steps:
       - name: Do something
