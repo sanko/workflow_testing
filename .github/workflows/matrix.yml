@@ -1,7 +1,7 @@
 ---
 jobs:
   build:
-    name: ${{ inputs.flags || 'Default' }}
+    name: "${{ inputs.flags || 'Default' }}"
     runs-on: '${{ inputs.os }}'
     steps:
       - name: 'Build in ${{ inputs.os }}'
@@ -17,10 +17,10 @@ jobs:
         run: |
           \curl -L https://install.perlbrew.pl | bash
           source ~/perl5/perlbrew/etc/bashrc
-
+          
           perlbrew available
           perlbrew install-cpanm
-
+          
           perlbrew install --switch --verbose --as cache-${{ inputs.os }}${{ inputs.perl }}${{ inputs.flags }} -j 12 --notest --noman ${{ inputs.flags }} perl-${{ inputs.perl }}
         shell: bash
       - id: perl
