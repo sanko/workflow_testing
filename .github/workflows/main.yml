@@ -1,7 +1,7 @@
 ---
 jobs:
   macos:
-    name: 'v${{matrix.perl}}'
+    name: 'macOS/v${{matrix.perl}}'
     needs:
       - setup
     strategy:
@@ -17,7 +17,7 @@ jobs:
       os: '${{ matrix.os }}'
       perl: '${{ matrix.perl }}'
   linux:
-    name: 'v${{matrix.perl}}'
+    name: 'Linux/v${{matrix.perl}}'
     needs:
       - setup
     strategy:
@@ -64,7 +64,7 @@ jobs:
         id: matrix
         run: "jq -rn 'env.DATA | fromjson | @json \"matrix=\\(.)\"' > $GITHUB_OUTPUT\n"
   win32:
-    name: 'v${{matrix.perl}}'
+    name: 'Windows/v${{matrix.perl}}'
     needs:
       - setup
     strategy:
