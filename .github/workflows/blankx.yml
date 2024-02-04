@@ -1,32 +1,22 @@
-# This is a basic workflow to help you get started with Actions
-
-name: CI
-
-# Controls when the workflow will run
-on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-  workflow_dispatch:
-    inputs:
-      OS:
-        description: provide all OS in stringified array format
-        required: true
-        default: "ubuntu-latest,windows-latest"
-      NODE_VERSION:
-        description: provide all node versions in stringified array format
-        required: true
-        default: "10,16"
-        
+---
 jobs:
-  prebuild:
+  build:
+    name: '${{ matrix.OS }} ${{ matrix.NODE_VERSION }}'
+    needs: prebuild
     runs-on: ubuntu-latest
+    steps:
+      - name: running
+        run: 'echo "running job with ${{ matrix.OS }} ${{ matrix.NODE_VERSION }}"'
+    strategy:
+      fail-fast: false
+      matrix:
+        NODE_VERSION: '${{fromJSON( needs.prebuild.outputs.nodeVersion )}}'
+        OS: '${{fromJSON( needs.prebuild.outputs.os )}}'
+  prebuild:
     outputs:
-      os: ${{ steps.set-matrix.outputs.os }}
-      nodeVersion: ${{ steps.set-matrix.outputs.nodeVersion }}
+      nodeVersion: '${{ steps.set-matrix.outputs.nodeVersion }}'
+      os: '${{ steps.set-matrix.outputs.os }}'
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
@@ -35,28 +25,34 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 16
-          registry-url: "https://registry.npmjs.org"
+          registry-url: https://registry.npmjs.org
       - name: Install package
         run: npm install
-      - name: transform input
-        id: transformInput
+      - id: transformInput
+        name: transform input
         uses: ./.github/actions/transformer/
         with:
-          os: ${{ github.event.inputs.OS }}
-          nodeversion: ${{ github.event.inputs.NODE_VERSION}}
+          nodeversion: '${{ github.event.inputs.NODE_VERSION}}'
+          os: '${{ github.event.inputs.OS }}'
       - id: set-matrix
         run: |
           echo "::set-output name=os::${{ steps.transformInput.outputs.os }}"
           echo "::set-output name=nodeVersion::${{ steps.transformInput.outputs.nodeversion }}"
-  build:
-    needs: prebuild
-    runs-on: ubuntu-latest
-    name: "${{ matrix.OS }} ${{ matrix.NODE_VERSION }}"
-    strategy:
-      fail-fast: false
-      matrix:
-        OS: ${{fromJSON( needs.prebuild.outputs.os )}}
-        NODE_VERSION: ${{fromJSON( needs.prebuild.outputs.nodeVersion )}}
-    steps:
-      - name: running
-        run: echo "running job with ${{ matrix.OS }} ${{ matrix.NODE_VERSION }}"
+name: CI
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      NODE_VERSION:
+        default: '10,16'
+        description: provide all node versions in stringified array format
+        required: true
+      OS:
+        default: 'ubuntu-latest,windows-latest'
+        description: provide all OS in stringified array format
+        required: true

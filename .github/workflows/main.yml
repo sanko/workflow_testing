@@ -1,65 +1,19 @@
-name: Mega Matrix CI # Related to SO: https://stackoverflow.com/questions/72537896/github-actions-create-matrix-of-multiple-sequential-jobs
-
-on:
-  push:
-  workflow_dispatch:
-
-#concurrency:
-#  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
-#  cancel-in-progress: true
-
+---
 jobs:
-  setup:
-    name: Generate Testing Matrix
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.matrix.outputs.matrix }}
-    steps:
-      - id: matrix
-        env:
-          DATA: |
-            {
-              "os": ["ubuntu-latest", "macos-latest"],
-              "perl": ["5.38.0", "5.36.0"]
-            }
-        run: |
-          jq -rn 'env.DATA | fromjson | @json "matrix=\(.)"' > $GITHUB_OUTPUT
-
-  win32:
-    name: "OS: windows-2019, Perl: ${{matrix.perl}}"
-    needs:
-      - setup
-    strategy:
-      matrix:
-        os:
-          - windows-2019
-        perl:  ${{ fromJSON(needs.setup.outputs.matrix).perl }}
-      fail-fast: false
-      max-parallel: 5
-    # environment:
-    #   name: ${{ matrix.environment }}
-    uses: sanko/workflow_testing/.github/workflows/win32.yml@main
-    with:
-      os: windows-2019
-      perl: ${{ matrix.perl }}
-
   build:
-    name: "OS: ${{matrix.os}}, Perl: ${{matrix.perl}}"
+    name: 'OS: ${{matrix.os}}, Perl: ${{matrix.perl}}'
     needs:
       - setup
     strategy:
-      matrix:
-        os:  ${{ fromJSON(needs.setup.outputs.matrix).os }}
-        perl:  ${{ fromJSON(needs.setup.outputs.matrix).perl }}
       fail-fast: false
+      matrix:
+        os: '${{ fromJSON(needs.setup.outputs.matrix).os }}'
+        perl: '${{ fromJSON(needs.setup.outputs.matrix).perl }}'
       max-parallel: 5
-    # environment:
-    #   name: ${{ matrix.environment }}
     uses: sanko/workflow_testing/.github/workflows/matrix.yml@main
     with:
-      os: ${{ matrix.os }}
-      perl: ${{ matrix.perl }}
-
+      os: '${{ matrix.os }}'
+      perl: '${{ matrix.perl }}'
   results:
     name: Results
     needs:
@@ -75,5 +29,37 @@ jobs:
         with:
           path: artifacts
       - name: Report test results
-        run: |
-          grep . artifacts/test-output-*/test-*.txt
+        run: "grep . artifacts/test-output-*/test-*.txt\n"
+  setup:
+    name: Generate Testing Matrix
+    outputs:
+      matrix: '${{ steps.matrix.outputs.matrix }}'
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          DATA: |
+            {
+              "os": ["ubuntu-latest", "macos-latest"],
+              "perl": ["5.38.0", "5.36.0"]
+            }
+        id: matrix
+        run: "jq -rn 'env.DATA | fromjson | @json \"matrix=\\(.)\"' > $GITHUB_OUTPUT\n"
+  win32:
+    name: 'OS: windows-2019, Perl: ${{matrix.perl}}'
+    needs:
+      - setup
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-2019
+        perl: '${{ fromJSON(needs.setup.outputs.matrix).perl }}'
+      max-parallel: 5
+    uses: sanko/workflow_testing/.github/workflows/win32.yml@main
+    with:
+      os: windows-2019
+      perl: '${{ matrix.perl }}'
+name: Mega Matrix CI
+on:
+  push: ~
+  workflow_dispatch: ~

@@ -1,84 +1,38 @@
-name: Matrix Results V2
-on:
-  workflow_dispatch:
-  pull_request:
-  push:
-    branches:
-      - main
-      - master
-      
+---
 jobs:
-  setup:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.matrix.outputs.matrix }}
+  build:
+    concurrency:
+      cancel-in-progress: true
+      group: '${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{matrix.os}}-${{matrix.perl}}'
+    needs:
+      - setup
+    runs-on: '${{ matrix.os }}'
     steps:
-      - id: matrix
-        env:
+      - id: test1
+        name: Get Perl Version
+        run: "perl -v > build-output-${{strategy.job-index}}.txt\n"
+      - name: Upload results as artifact
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          if-no-files-found: error
+          name: 'build-output-${{strategy.job-index}}'
+          path: 'build-output-${{strategy.job-index}}.txt'
+          retention-days: 1
+    strategy:
+      matrix: '${{ fromJSON(needs.setup.outputs.matrix) }}'
+  setup:
+    outputs:
+      matrix: '${{ steps.matrix.outputs.matrix }}'
+    runs-on: ubuntu-latest
+    steps:
+      - env:
           DATA: |
             {
               "os": ["ubuntu-latest", "macos-latest", "windows-2019"],
               "perl": ["5.38.0", "5.36.0"]
             }
-        run: |
-          jq -rn 'env.DATA | fromjson | @json "matrix=\(.)"' > $GITHUB_OUTPUT
-  build:
-    needs:
-      - setup
-    strategy:
-      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
-    runs-on: ${{ matrix.os }}
-    concurrency:
-    # If the CI run is for a PR, allow a single concurrent run per PR and cancel
-    # all other runs for the same PR (e.g., if the PR was rebased) even when
-    # those runs are for different commits.  If the CI run is for anything else
-    # (push, workflow_dispatch, schedule), allow a single concurrent run per
-    # commit and cancel other runs for the same commit.
-    #
-      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{matrix.os}}-${{matrix.perl}}
-      cancel-in-progress: true
-    steps:
-      - id: test1
-        name: Get Perl Version
-        run: |
-          perl -v > build-output-${{strategy.job-index}}.txt
-      - name: Upload results as artifact
-        uses: actions/upload-artifact@v4.0.0
-        with:
-          name: build-output-${{strategy.job-index}}
-          path: build-output-${{strategy.job-index}}.txt
-          if-no-files-found: error
-          retention-days: 1
-          
-  test:
-    needs:
-      - setup
-      - build
-    strategy:
-      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
-    runs-on: ${{ matrix.os }}
-    concurrency:
-    # If the CI run is for a PR, allow a single concurrent run per PR and cancel
-    # all other runs for the same PR (e.g., if the PR was rebased) even when
-    # those runs are for different commits.  If the CI run is for anything else
-    # (push, workflow_dispatch, schedule), allow a single concurrent run per
-    # commit and cancel other runs for the same commit.
-    #
-      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{matrix.os}}-${{matrix.perl}}
-      cancel-in-progress: true
-    steps:
-      - id: test1
-        name: Pretend we are doing something
-        run: |
-          echo '${{matrix.os}}:${{matrix.perl}} ......... ok' > test-output-${{strategy.job-index}}.txt
-      - name: Upload results as artifact
-        uses: actions/upload-artifact@v4.0.0
-        with:
-          name: test-output-${{strategy.job-index}}
-          path: test-output-${{strategy.job-index}}.txt
-          if-no-files-found: error
-          retention-days: 1
-          
+        id: matrix
+        run: "jq -rn 'env.DATA | fromjson | @json \"matrix=\\(.)\"' > $GITHUB_OUTPUT\n"
   summarize-build:
     needs:
       - build
@@ -89,9 +43,7 @@ jobs:
         with:
           path: artifacts
       - name: Report build results
-        run: |
-          grep . artifacts/build-output-*/build-*.txt
-
+        run: "grep . artifacts/build-output-*/build-*.txt\n"
   summarize-test:
     needs:
       - build
@@ -103,5 +55,33 @@ jobs:
         with:
           path: artifacts
       - name: Report test results
-        run: |
-          grep . artifacts/test-output-*/test-*.txt
+        run: "grep . artifacts/test-output-*/test-*.txt\n"
+  test:
+    concurrency:
+      cancel-in-progress: true
+      group: '${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{matrix.os}}-${{matrix.perl}}'
+    needs:
+      - setup
+      - build
+    runs-on: '${{ matrix.os }}'
+    steps:
+      - id: test1
+        name: Pretend we are doing something
+        run: "echo '${{matrix.os}}:${{matrix.perl}} ......... ok' > test-output-${{strategy.job-index}}.txt\n"
+      - name: Upload results as artifact
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          if-no-files-found: error
+          name: 'test-output-${{strategy.job-index}}'
+          path: 'test-output-${{strategy.job-index}}.txt'
+          retention-days: 1
+    strategy:
+      matrix: '${{ fromJSON(needs.setup.outputs.matrix) }}'
+name: Matrix Results V2
+on:
+  pull_request: ~
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch: ~

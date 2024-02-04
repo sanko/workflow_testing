@@ -1,76 +1,68 @@
-name: CI
-on:
-  pull_request:
-  push:
-    branches:
-      - main
-      - master
-  workflow_dispatch:
-    inputs:
-      flake_only:
-        description: 'Run flake tests only'
-        default: false
-        type: boolean
-
-permissions: {}
-
+---
+concurrency:
+  cancel-in-progress: true
+  group: '${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}'
 defaults:
   run:
-    # Use `bash` by default.  Note that, according to the documentation, the
-    # real command is `bash --noprofile --norc -eo pipefail {0}`, which makes
-    # the shell catch any errors in pipelines.
     shell: bash
-
-concurrency:
-  # If the CI run is for a PR, allow a single concurrent run per PR and cancel
-  # all other runs for the same PR (e.g., if the PR was rebased) even when
-  # those runs are for different commits.  If the CI run is for anything else
-  # (push, workflow_dispatch, schedule), allow a single concurrent run per
-  # commit and cancel other runs for the same commit.
-  #
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: true
-
 env:
   CACHIX_NAME: sigprof
-
-  nur_systems: x86_64-linux x86_64-darwin
+  CI_NIX_INSTALL_URL: https://releases.nixos.org/nix/nix-2.14.1/install
+  NIX_CONFIG: 'access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}'
   nur_channels: nixpkgs-unstable nixos-unstable nixos-23.05 nixos-22.11
   nur_main_channel: nixos-23.05
-
-  CI_NIX_INSTALL_URL: https://releases.nixos.org/nix/nix-2.14.1/install
-  NIX_CONFIG: access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-
+  nur_systems: x86_64-linux x86_64-darwin
 jobs:
-  setup_flake:
+  finish:
+    env:
+      ci_success: |-
+        ${{
+          (needs.setup_flake.result == 'success')
+          && (needs.setup_nur.result == 'success' || needs.setup_nur.result == 'skipped')
+          && (needs.x86_64-linux.result == 'success')
+          && (needs.x86_64-darwin.result == 'success' || needs.x86_64-darwin.result == 'skipped')
+        }}
+    if: (always() && !cancelled())
+    needs:
+      - setup_flake
+      - setup_nur
+      - x86_64-linux
+      - x86_64-darwin
     runs-on: ubuntu-latest
+    steps:
+      - if: env.ci_success == 'true'
+        name: Notify on success
+        run: echo "Dummy notify on success"
+      - if: env.ci_success == 'false'
+        name: Notify on failure
+        run: echo "Dummy notify on failure"
+      - name: Report CI status
+        run: $ci_success
+  setup_flake:
     env:
       this_system: x86_64-linux
     outputs:
-      nix_install_url: ${{ env.CI_NIX_INSTALL_URL }}
-      cachix_name: ${{ env.CACHIX_NAME }}
-      flake_jobs: ${{ steps.collect_flake_jobs.outputs.flake_jobs }}
+      cachix_name: '${{ env.CACHIX_NAME }}'
+      flake_jobs: '${{ steps.collect_flake_jobs.outputs.flake_jobs }}'
+      nix_install_url: '${{ env.CI_NIX_INSTALL_URL }}'
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3.5.3
-
       - name: Install Nix
         uses: cachix/install-nix-action@v22
         with:
-          install_url: ${{ env.CI_NIX_INSTALL_URL }}
-
+          install_url: '${{ env.CI_NIX_INSTALL_URL }}'
       - name: Setup Cachix
         uses: cachix/cachix-action@v12
         with:
-          name: ${{ env.CACHIX_NAME }}
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-          extraPullNames: "pre-commit-hooks"
-
+          extraPullNames: pre-commit-hooks
+          name: '${{ env.CACHIX_NAME }}'
       - name: Check flake evaluation
         run: nix flake check --no-build --show-trace
-
-      - name: Collect flake jobs
-        id: collect_flake_jobs
+      - id: collect_flake_jobs
+        name: Collect flake jobs
         run: |
           # Collect flake jobs
           flake_jobs="$(nix eval --json .\#lib.ciData.matrix)"
@@ -78,10 +70,10 @@ jobs:
           printf '%s' "$flake_jobs" | jq
           echo "::endgroup::"
           printf 'flake_jobs=%s\n' "$flake_jobs" >> $GITHUB_OUTPUT
-      - name: Collect setup checks
+      - env:
+          flake_jobs: '${{ steps.collect_flake_jobs.outputs.flake_jobs }}'
         id: collect_setup_checks
-        env:
-          flake_jobs: ${{ steps.collect_flake_jobs.outputs.flake_jobs }}
+        name: Collect setup checks
         run: |
           # Collect setup checks
           setup_checks="$(
@@ -94,44 +86,38 @@ jobs:
           printf '%s' "$setup_checks" | jq
           echo "::endgroup::"
           printf 'setup_checks=%s\n' "$setup_checks" >> $GITHUB_OUTPUT
-      - name: Run setup checks
-        if: ${{ steps.collect_setup_checks.outputs.setup_checks }}
+      - if: '${{ steps.collect_setup_checks.outputs.setup_checks }}'
+        name: Run setup checks
         uses: ./.github/actions/nix-build
         with:
-          item: ${{ steps.collect_setup_checks.outputs.setup_checks }}
-          system: ${{ env.this_system }}
-          nix-install-url: ${{ env.CI_NIX_INSTALL_URL }}
-          cachix-name: ${{ env.CACHIX_NAME }}
-          cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
-
+          cachix-auth-token: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          cachix-name: '${{ env.CACHIX_NAME }}'
+          item: '${{ steps.collect_setup_checks.outputs.setup_checks }}'
+          nix-install-url: '${{ env.CI_NIX_INSTALL_URL }}'
+          system: '${{ env.this_system }}'
   setup_nur:
-    runs-on: ubuntu-latest
-    outputs:
-      nur_jobs: ${{ steps.collect_nur_jobs.outputs.nur_jobs }}
-    if: >-
-      (always() && !cancelled())
-      && (!inputs.flake_only)
-      && !(
+    if: |-
+      (always() && !cancelled()) && (!inputs.flake_only) && !(
         (github.event_name == 'pull_request')
         && (github.event.pull_request.head.repo.full_name == 'sigprof/test-workflows')
         && startsWith(github.event.pull_request.head.ref, 'automatic-flake-update/')
       )
+    outputs:
+      nur_jobs: '${{ steps.collect_nur_jobs.outputs.nur_jobs }}'
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3.5.3
-
       - name: Install Nix
         uses: cachix/install-nix-action@v22
         with:
-          install_url: ${{ env.CI_NIX_INSTALL_URL }}
-
+          install_url: '${{ env.CI_NIX_INSTALL_URL }}'
       - name: Setup Cachix
         uses: cachix/cachix-action@v12
         with:
-          name: ${{ env.CACHIX_NAME }}
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-          extraPullNames: "pre-commit-hooks"
-
+          extraPullNames: pre-commit-hooks
+          name: '${{ env.CACHIX_NAME }}'
       - name: Check NUR evaluation
         run: |
           # Check NUR evaluation
@@ -146,8 +132,8 @@ jobs:
               -I $PWD
             echo "::endgroup::"
           done
-      - name: Collect NUR jobs
-        id: collect_nur_jobs
+      - id: collect_nur_jobs
+        name: Collect NUR jobs
         run: |
           # Collect NUR jobs
           # Determine how to handle `nixpkgs-unstable` and `nixos-unstable`.
@@ -251,70 +237,47 @@ jobs:
           printf '%s' "$nur_jobs" | jq
           echo "::endgroup::"
           printf 'nur_jobs=%s\n' "$nur_jobs" >> $GITHUB_OUTPUT
- 
-  x86_64-linux:
-    needs:
-      - setup_flake
-      - setup_nur
-    if: >-
-      (always() && !cancelled())
-      && (needs.setup_flake.result == 'success')
-      && (needs.setup_nur.result == 'success' || needs.setup_nur.result == 'skipped')
-    uses: ./.github/workflows/ci-per-system.yml
-    with:
-      system: x86_64-linux
-      runs-on: ubuntu-latest
-      flake-jobs: ${{ toJSON(fromJSON(needs.setup_flake.outputs.flake_jobs).x86_64-linux.flake) }}
-      nur-jobs: ${{ toJSON(fromJSON(needs.setup_nur.outputs.nur_jobs || '{}').x86_64-linux.nur) }}
-      nix-install-url: ${{ needs.setup_flake.outputs.nix_install_url }}
-      cachix-name: ${{ needs.setup_flake.outputs.cachix_name }}
-    secrets:
-      cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
-
   x86_64-darwin:
+    if: (always() && !cancelled()) && (needs.setup_flake.result == 'success') && (needs.setup_nur.result == 'success' || needs.setup_nur.result == 'skipped')
     needs:
       - setup_flake
       - setup_nur
-    if: >-
-      (always() && !cancelled())
-      && (needs.setup_flake.result == 'success')
-      && (needs.setup_nur.result == 'success' || needs.setup_nur.result == 'skipped')
+    secrets:
+      cachix-auth-token: '${{ secrets.CACHIX_AUTH_TOKEN }}'
     uses: ./.github/workflows/ci-per-system.yml
     with:
-      system: x86_64-darwin
+      cachix-name: '${{ needs.setup_flake.outputs.cachix_name }}'
+      flake-jobs: '${{ toJSON(fromJSON(needs.setup_flake.outputs.flake_jobs).x86_64-darwin.flake) }}'
+      nix-install-url: '${{ needs.setup_flake.outputs.nix_install_url }}'
+      nur-jobs: "${{ toJSON(fromJSON(needs.setup_nur.outputs.nur_jobs || '{}').x86_64-darwin.nur) }}"
       runs-on: macos-latest
-      flake-jobs: ${{ toJSON(fromJSON(needs.setup_flake.outputs.flake_jobs).x86_64-darwin.flake) }}
-      nur-jobs: ${{ toJSON(fromJSON(needs.setup_nur.outputs.nur_jobs || '{}').x86_64-darwin.nur) }}
-      nix-install-url: ${{ needs.setup_flake.outputs.nix_install_url }}
-      cachix-name: ${{ needs.setup_flake.outputs.cachix_name }}
-    secrets:
-      cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
-
-  finish:
+      system: x86_64-darwin
+  x86_64-linux:
+    if: (always() && !cancelled()) && (needs.setup_flake.result == 'success') && (needs.setup_nur.result == 'success' || needs.setup_nur.result == 'skipped')
     needs:
       - setup_flake
       - setup_nur
-      - x86_64-linux
-      - x86_64-darwin
-    runs-on: ubuntu-latest
-    if: >-
-      (always() && !cancelled())
-    env:
-      ci_success: >-
-        ${{
-          (needs.setup_flake.result == 'success')
-          && (needs.setup_nur.result == 'success' || needs.setup_nur.result == 'skipped')
-          && (needs.x86_64-linux.result == 'success')
-          && (needs.x86_64-darwin.result == 'success' || needs.x86_64-darwin.result == 'skipped')
-        }}
-    steps:
-      - name: Notify on success
-        if: env.ci_success == 'true'
-        run: echo "Dummy notify on success"
-
-      - name: Notify on failure
-        if: env.ci_success == 'false'
-        run: echo "Dummy notify on failure"
-
-      - name: Report CI status
-        run: $ci_success
+    secrets:
+      cachix-auth-token: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+    uses: ./.github/workflows/ci-per-system.yml
+    with:
+      cachix-name: '${{ needs.setup_flake.outputs.cachix_name }}'
+      flake-jobs: '${{ toJSON(fromJSON(needs.setup_flake.outputs.flake_jobs).x86_64-linux.flake) }}'
+      nix-install-url: '${{ needs.setup_flake.outputs.nix_install_url }}'
+      nur-jobs: "${{ toJSON(fromJSON(needs.setup_nur.outputs.nur_jobs || '{}').x86_64-linux.nur) }}"
+      runs-on: ubuntu-latest
+      system: x86_64-linux
+name: CI
+on:
+  pull_request: ~
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+    inputs:
+      flake_only:
+        default: false
+        description: Run flake tests only
+        type: boolean
+permissions: {}
