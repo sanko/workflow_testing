@@ -12,32 +12,32 @@ jobs:
   common-matrix-job:
     runs-on: ubuntu-latest
     outputs: 
-      environments: ${{ steps.environments.outputs.environments }}
+      os: ${{ steps.environments.outputs.os }}
     steps:
       - name: Build Environments Array
         id: environments
         run: |
-          myArray=()
-          myArray+=("windows-2019")
-          myArray+=("ubuntu-latest")
-          myArray+=("macos-latest")
-          myArray=$(jq --compact-output --null-input '$ARGS.positional' --args -- "${myArray[@]}")
-          echo "Updated environments list: $myArray"
-          echo "environments=$myArray" >> $GITHUB_OUTPUT
+          osArray=()
+          osArray+=("windows-2019")
+          osArray+=("ubuntu-latest")
+          osArray+=("macos-latest")
+          osArray=$(jq --compact-output --null-input '$ARGS.positional' --args -- "${osArray[@]}")
+          echo "Updated environments list: $osArray"
+          echo "os=$osArray" >> $GITHUB_OUTPUT
         shell: bash
   
   reusable:
     needs: [common-matrix-job]
     strategy:
       matrix:
-        environment: ${{ fromJSON(needs.common-matrix-job.outputs.environments) }}
+        os: ${{ fromJSON(needs.common-matrix-job.outputs.os) }}
       fail-fast: true
       max-parallel: 1
     # environment:
     #   name: ${{ matrix.environment }}
     uses: sanko/workflow_testing/.github/workflows/matrix.yml@main
     with:
-      stage: ${{ matrix.environment }}
+      stage: ${{ matrix.os }}
 
   common-job:
     needs: 
