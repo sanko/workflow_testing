@@ -4,12 +4,13 @@ on:
   push:
   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: true
+#concurrency:
+#  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+#  cancel-in-progress: true
 
 jobs:
   setup:
+    name: Generate Testing Matrix
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
@@ -22,28 +23,38 @@ jobs:
               "perl": ["5.38.0", "5.36.0"]
             }
         run: |
-          jq -rn 'env.DATA | fromjson | @json "matrix=\(.)"' > $GITHUB_OUTPUT     
-  
+          jq -rn 'env.DATA | fromjson | @json "matrix=\(.)"' > $GITHUB_OUTPUT
+
   build:
+    name: "OS: ${{matrix.os}}, Perl: ${{matrix.perl}}"
     needs:
       - setup
     strategy:
       matrix:
-        os:  ${{ fromJSON(needs.setup.outputs.matrix).os}}
-        perl:  ${{ fromJSON(needs.setup.outputs.matrix).perl}}
-      fail-fast: true
+        os:  ${{ fromJSON(needs.setup.outputs.matrix).os }}
+        perl:  ${{ fromJSON(needs.setup.outputs.matrix).perl }}
+      fail-fast: false
       max-parallel: 5
     # environment:
     #   name: ${{ matrix.environment }}
     uses: sanko/workflow_testing/.github/workflows/matrix.yml@main
     with:
       os: ${{ matrix.os }}
+      perl: ${{ matrix.perl }}
 
-  common-job:
-    needs: 
+  results:
+    name: Results
+    needs:
       - setup
       - build
     runs-on: ubuntu-latest
     steps:
       - name: Do something
         run: echo "Do something"
+      - name: Download test results
+        uses: actions/download-artifact@v4.0.0
+        with:
+          path: artifacts
+      - name: Report test results
+        run: |
+          grep . artifacts/test-output-*/test-*.txt
