@@ -4,28 +4,15 @@ jobs:
     name: "${{ inputs.flags || 'Default' }}"
     runs-on: '${{ inputs.os }}'
     steps:
-      - name: 'Build in ${{ inputs.os }}'
-        run: "echo \"Build in ${{ inputs.os }}\"\n"
       - id: cache-perl
-        name: Cache perl
+        name: Check perl Cache
         uses: actions/cache@v4
         with:
           key: '${{ inputs.os }}-perl-v${{ inputs.perl }}${{ inputs.flags }}'
           path: '~/perl5/perlbrew/'
-      - if: "${{  steps.cache-perl.outputs.cache-hit != 'true' && inputs.os == 'windows-2019' }}"
-        name: Init dev env on Windows
+      - if: "${{ steps.cache-perl.outputs.cache-hit != 'true' && inputs.os == 'windows-2019' }}"
+        name: Build perl on Windows from source
         run: |
-          # skip installing perl if it is already installed.
-          if (!(Test-Path "C:\strawberry\perl\bin")) {
-            choco install strawberryperl
-          }
-          echo @"
-          C:\strawberry\c\bin
-          C:\strawberry\perl\site\bin
-          C:\strawberry\perl\bin
-          "@ |
-            Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
           git clone --depth 1 --branch v${{inputs.perl}} https://github.com/Perl/perl5.git
           pushd perl5\win32
 
@@ -41,7 +28,7 @@ jobs:
           popd
           set PATH=C:\Users\runneradmin\perl5\perlbrew\bin;%PATH%
       - if: "${{ steps.cache-perl.outputs.cache-hit != 'true' && inputs.os != 'windows-2019' }}"
-        name: 'Build perl ${{ inputs.perl }} with perlbrew'
+        name: Build perl on other platforms with perlbrew
         run: |
           \curl -L https://install.perlbrew.pl | bash
           source ~/perl5/perlbrew/etc/bashrc
