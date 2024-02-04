@@ -1,15 +1,14 @@
 ---
 jobs:
   linux:
-    name: 'Linux/v${{matrix.perl}}'
+    name: '${{matrix.os}}/v${{matrix.perl}}'
     needs:
       - setup
     strategy:
       fail-fast: false
       matrix:
         flags: '${{ fromJSON(needs.setup.outputs.matrix).flags }}'
-        os:
-          - ubuntu-latest
+        os: '${{ fromJSON(needs.setup.outputs.matrix).os }}-latest'
         perl: '${{ fromJSON(needs.setup.outputs.matrix).perl }}'
       max-parallel: 5
     uses: sanko/workflow_testing/.github/workflows/matrix.yml@main
