@@ -37,18 +37,37 @@ jobs:
       group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{matrix.os}}-${{matrix.perl}}
       cancel-in-progress: true
     steps:
-      - id: step1
+      - run: echo "Hi!'
+          
+  test:
+    needs:
+      - setup
+      - build
+    strategy:
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
+    runs-on: ${{ matrix.os }}
+    concurrency:
+    # If the CI run is for a PR, allow a single concurrent run per PR and cancel
+    # all other runs for the same PR (e.g., if the PR was rebased) even when
+    # those runs are for different commits.  If the CI run is for anything else
+    # (push, workflow_dispatch, schedule), allow a single concurrent run per
+    # commit and cancel other runs for the same commit.
+    #
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{matrix.os}}-${{matrix.perl}}
+      cancel-in-progress: true
+    steps:
+      - id: test1
         name: Pretend we are doing something
         run: |
           echo '${{matrix.os}}:${{matrix.perl}} ......... ok' > output_${{strategy.job-index}}.txt
       - name: Upload results as artifact
         uses: actions/upload-artifact@v4.0.0
         with:
-          name: build-output-${{strategy.job-index}}
-          path: output_${{strategy.job-index}}.txt
+          name: test-output-${{strategy.job-index}}
+          path: test_${{strategy.job-index}}.txt
           if-no-files-found: error
           retention-days: 1
-
+          
   summarize:
     needs:
       - build
@@ -60,4 +79,4 @@ jobs:
           path: artifacts
       - name: Report build results
         run: |
-          grep . artifacts/build-output-*/output_*.txt
+          grep . artifacts/test-output-*/test_*.txt
