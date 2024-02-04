@@ -17,7 +17,7 @@ jobs:
           DATA: |
             {
               "os": ["ubuntu-latest", "macos-latest", "windows-2019"],
-              "node-version": ["12", "14", "16", "18", "20"]
+              "perl": ["5.38.0", "5.36.0"]
             }
         run: |
           jq -rn 'env.DATA | fromjson | @json "matrix=\(.)"' > $GITHUB_OUTPUT
@@ -34,13 +34,13 @@ jobs:
     # (push, workflow_dispatch, schedule), allow a single concurrent run per
     # commit and cancel other runs for the same commit.
     #
-      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{matrix.os}}
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{matrix.os}}-${{matrix.perl}}
       cancel-in-progress: true
     steps:
       - id: step1
         name: Pretend we are doing something
         run: |
-          echo '${{matrix.os}}:${{matrix.node-version}} ......... ok' > output_${{strategy.job-index}}.txt
+          echo '${{matrix.os}}:${{matrix.perl}} ......... ok' > output_${{strategy.job-index}}.txt
       - name: Upload results as artifact
         uses: actions/upload-artifact@v4.0.0
         with:
