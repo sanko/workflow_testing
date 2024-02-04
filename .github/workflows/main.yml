@@ -1,6 +1,6 @@
 ---
 jobs:
-  linux:
+  meta:
     name: '${{matrix.os}}/v${{matrix.perl}}'
     needs:
       - setup
