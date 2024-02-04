@@ -42,7 +42,9 @@ jobs:
         shell: bash
   
   reusable:
-    needs: [common-matrix-job]
+    needs: 
+      - common-matrix-job
+      - setup
     strategy:
       matrix:
         os: ${{ fromJSON(needs.common-matrix-job.outputs.os) }}
