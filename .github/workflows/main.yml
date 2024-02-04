@@ -37,7 +37,7 @@ jobs:
     #   name: ${{ matrix.environment }}
     uses: sanko/workflow_testing/.github/workflows/matrix.yml@main
     with:
-      stage: ${{ matrix.os }}
+      os: ${{ matrix.os }}
 
   common-job:
     needs: 
