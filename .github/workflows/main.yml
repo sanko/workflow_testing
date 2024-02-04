@@ -13,7 +13,7 @@ jobs:
     name: Generate Matrix
     runs-on: ubuntu-latest
     outputs: 
-      os: ${{ steps.matrix.outputs.os }}
+      os: ${{ steps.environments.outputs.os }}
     steps:
       - name: Generate Matrix
         id: matrix
@@ -29,8 +29,7 @@ jobs:
     needs: [common-matrix-job]
     strategy:
       matrix:
-        os: ${{ fromJSON(needs.common-matrix-job.outputs.matrix.os) }}
-        perl: ${{ fromJSON(needs.common-matrix-job.outputs.matrix.perl) }}
+        os: ${{ fromJSON(needs.common-matrix-job.outputs.matrix) }}
       fail-fast: true
       max-parallel: 1
     # environment:
