@@ -15,7 +15,6 @@ jobs:
         run: |
           git clone --depth 1 --branch v${{inputs.perl}} https://github.com/Perl/perl5.git
           pushd perl5\win32
-
           gmake CCHOME=C:\strawberry\c INST_TOP="C:\Users\runneradmin\perl5\perlbrew" ${{
                inputs.flags == '--64int'        && 'USE_64_BIT_INT=define'                   || ''
               }} ${{ inputs.flags == '--thread'       && 'USE_ITHREADS=define    USE_MULTI=define' || ''
@@ -24,19 +23,16 @@ jobs:
               }} ${{ inputs.flags == '-Dusequadmath'  && 'USE_QUADMATH=define'                     || ''
               }} ${{ inputs.flags == '--32bit'        && 'WIN64=undef'                             || ''
               }} -f GNUMakefile -j2 install
-
           popd
-          set PATH=C:\Users\runneradmin\perl5\perlbrew\bin;%PATH%
+          echo C:\Users\runneradmin\perl5\perlbrew\bin >> %GITHUB_PATH%
           curl -L https://cpanmin.us | perl - App::cpanminus
       - if: "${{ steps.cache-perl.outputs.cache-hit != 'true' && inputs.os != 'windows-2019' }}"
         name: Build perl on other platforms with perlbrew
         run: |
           \curl -L https://install.perlbrew.pl | bash
           source ~/perl5/perlbrew/etc/bashrc
-
           perlbrew available
           perlbrew install-cpanm
-
           perlbrew install --switch --verbose --as cache-${{ inputs.os }}${{ inputs.perl }}${{ inputs.flags }} -j 12 --notest --noman ${{ inputs.flags }} perl-${{ inputs.perl }}
         shell: bash
       - id: perl
