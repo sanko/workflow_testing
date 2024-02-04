@@ -41,7 +41,7 @@ jobs:
         with:
           if-no-files-found: error
           name: 'test-output-${{ inputs.os }}-${{ inputs.perl }}'
-          path: 'test-output-${{ inputs.os }}-${{ inputs.perl }}.txt'
+          path: 'test-output-${{ inputs.os }}-${{ inputs.perl }}-${{ inputs.flags }}.txt'
           retention-days: 1
 name: Matrix module
 on:
