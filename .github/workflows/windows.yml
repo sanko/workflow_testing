@@ -12,8 +12,8 @@ jobs:
         with:
           key: '${{ inputs.os }}-perl-v${{ inputs.perl }}${{ inputs.flags }}'
           path: '~/perl5/perlbrew/'
-      - if: "${{ steps.cache-perl.outputs.cache-hit != 'true' && inputs.os != 'windows-2019' }}"
-        name: 'Build perl ${{ inputs.perl }} with perlbrew'
+      #~ - if: "${{ steps.cache-perl.outputs.cache-hit != 'true' && inputs.os != 'windows-2019' }}"
+      - name: 'Build perl ${{ inputs.perl }} with perlbrew'
         run: |
           \curl -L https://install.perlbrew.pl | bash
           source ~/perl5/perlbrew/etc/bashrc
