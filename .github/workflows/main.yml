@@ -10,6 +10,7 @@ concurrency:
 
 jobs:
   common-matrix-job:
+    name: Generate Matrix
     runs-on: ubuntu-latest
     outputs: 
       os: ${{ steps.matrix.outputs.os }}
@@ -28,7 +29,8 @@ jobs:
     needs: [common-matrix-job]
     strategy:
       matrix:
-        ${{ fromJSON(needs.common-matrix-job.outputs.matrix) }}
+        os: ${{ fromJSON(needs.common-matrix-job.outputs.matrix.os) }}
+        perl: ${{ fromJSON(needs.common-matrix-job.outputs.matrix.perl) }}
       fail-fast: true
       max-parallel: 1
     # environment:
