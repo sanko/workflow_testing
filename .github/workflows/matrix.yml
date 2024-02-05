@@ -56,6 +56,8 @@ jobs:
           '[Environment]::SetEnvironmentVariable("PATH", "C:\Users\runneradmin\perl5\perlbrew\bin;$env:PATH")' ||
           'source ~/perl5/perlbrew/etc/bashrc' }}
 
+          curl -L https://cpanminus.org/cpanm | perl - App::cpanminus
+
           perl -V
 
           perl -e 'print $^V' > test-output-${{ inputs.os }}-${{ inputs.perl }}${{ inputs.flags }}.txt
