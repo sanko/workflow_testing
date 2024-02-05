@@ -52,15 +52,16 @@ jobs:
       - id: version
         name: Report Perl Version
         run: |
-          ${{ inputs.os == 'windows-2019' &&
-          '[Environment]::SetEnvironmentVariable("PATH", "C:\Users\runneradmin\perl5\perlbrew\bin;$env:PATH")' ||
-          'source ~/perl5/perlbrew/etc/bashrc' }}
-
-          curl -fsSL https://cpanmin.us | perl - App::cpanminus
+          ${{ runner.os == 'Windows' &&
+          'setx PATH "C:\Users\runneradmin\perl5\perlbrew\bin;%PATH%;"' ||
+          'echo "source ~/perl5/perlbrew/etc/bashrc" >> ~/.bashrc' }}
 
           perl -V
 
           perl -e 'print $^V' > test-output-${{ inputs.os }}-${{ inputs.perl }}${{ inputs.flags }}.txt
+
+          wget -O - https://cpanmin.us | perl - App::cpanminus
+
       - run: perl -V
         name: Try it again...
       - name: Upload results as artifact
