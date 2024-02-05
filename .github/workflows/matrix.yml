@@ -30,7 +30,7 @@ jobs:
           git clone --depth 1 --branch v${{inputs.perl}} https://github.com/Perl/perl5.git
 
           if [[ ${{ runner.os }} == 'Windows' ]]; then
-            pushd perl5\win32
+            pushd perl5/win32
             gmake CCHOME=C:\strawberry\c INST_TOP="C:\Users\runneradmin\perl5\perlbrew"  ${{
               inputs.flags == '-Dusethreads'     && 'USE_ITHREADS=define    USE_MULTI=define' || '' }} ${{
               inputs.flags == '-Duselongdouble'  && 'USE_LONG_DOUBLE=define'                  || '' }} ${{
