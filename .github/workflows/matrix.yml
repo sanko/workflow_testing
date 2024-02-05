@@ -28,7 +28,7 @@ jobs:
         run: |
           git clone --depth 1 --branch v${{inputs.perl}} https://github.com/Perl/perl5.git
 
-          if [[ ${{ runner.os == 'Windows' }} ]]; then
+          if [[ ${{ runner.os }} == 'Windows' ]]; then
             pushd perl5\win32
             gmake CCHOME=C:\strawberry\c INST_TOP="C:\Users\runneradmin\perl5\perlbrew"  ${{
               inputs.flags == '--64int'        && 'USE_64_BIT_INT=define'                   || '' }} ${{
