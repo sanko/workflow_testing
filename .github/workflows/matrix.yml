@@ -31,7 +31,7 @@ jobs:
 
           if [[ ${{ runner.os }} == 'Windows' ]]; then
             pushd perl5/win32
-            gmake CCHOME=C:/strawberry/c INST_TOP="~/perl5"  ${{
+            gmake CCHOME=C:/strawberry/c INST_TOP="~\\perl5"  ${{
               inputs.flags == '-Dusethreads'    && 'USE_ITHREADS=define    USE_MULTI=define' || '' }} ${{
               inputs.flags == '-Duselongdouble' && 'USE_LONG_DOUBLE=define'                  || '' }} ${{
               inputs.flags == '-Dusequadmath'   && 'USE_QUADMATH=define'                     || '' }} -f GNUMakefile -j5 install
