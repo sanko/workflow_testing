@@ -43,7 +43,7 @@ jobs:
         shell: bash
         run: |
 
-          if [[ ${{ runner.os }} == 'Windows' ]]; then
+          if [[ '${{ runner.os }}' == 'Windows' ]]; then
             set PATH=~/perl5/bin;%PATH%
           else
             export PATH=~/perl5/bin:$PATH
