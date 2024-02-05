@@ -9,7 +9,7 @@ jobs:
         uses: actions/cache@v4
         with:
           key: '${{ inputs.os }}-perl-v${{ inputs.perl }}${{ inputs.flags }}'
-          path: '~/perl5/perlbrew/'
+          path: '~/perl5/'
       - if: "${{  steps.cache-perl.outputs.cache-hit != 'true' && inputs.os == 'windows-2019' }}"
         name: Init dev env on Windows
         run: |
