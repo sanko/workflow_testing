@@ -44,8 +44,10 @@ jobs:
         run: |
 
           if [[ '${{ runner.os }}' == 'Windows' ]]; then
+            echo Windows
             set PATH=~/perl5/bin;%PATH%
           else
+            echo Not Windows
             export PATH=~/perl5/bin:$PATH
           fi
 
