@@ -49,6 +49,7 @@ jobs:
           else
             echo Not Windows
             export PATH=~/perl5/bin:$PATH
+            ~/perl5/bin/perl -V
           fi
 
           perl -V
