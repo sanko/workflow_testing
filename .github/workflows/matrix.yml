@@ -56,9 +56,7 @@ jobs:
           '[Environment]::SetEnvironmentVariable("PATH", "C:\Users\runneradmin\perl5\perlbrew\bin;$env:PATH")' ||
           'source ~/perl5/perlbrew/etc/bashrc' }}
 
-          curl -fsSL https://raw.githubusercontent.com/skaji/cpm/main/cpm | perl - install -g App::cpm
-
-          curl -L https://cpanmin.us | perl - App::cpanminus
+          curl -fsSL https://cpanmin.us | perl - App::cpanminus
 
           perl -V
 
