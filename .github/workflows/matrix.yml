@@ -60,8 +60,6 @@ jobs:
 
           perl -e 'print $^V' > test-output-${{ inputs.os }}-${{ inputs.perl }}${{ inputs.flags }}.txt
 
-          wget -O - https://cpanmin.us | perl - App::cpanminus
-
       - run: perl -V
         name: Try it again...
       - name: Upload results as artifact
