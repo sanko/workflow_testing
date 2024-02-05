@@ -31,7 +31,14 @@ jobs:
 
           if [[ '${{ runner.os }}' == 'Windows' ]]; then
             cd perl5/win32
-            gmake -Dinstallprefix=~/perl5 ${{ inputs.flags }} -j5 install
+            gmake CCHOME=C:\strawberry\c INST_TOP="C:\Users\runneradmin\perl5\perlbrew"  ^
+                ${{ matrix.flags == '--64int'        && 'USE_64_BIT_INT=define'                   || '' }} ^
+                ${{ matrix.flags == '--thread'       && 'USE_ITHREADS=define    USE_MULTI=define' || '' }} ^
+                ${{ matrix.flags == '--ld'           && 'USE_LONG_DOUBLE=define'                  || '' }} ^
+                ${{ matrix.flags == '--multi'        && 'USE_MULTI=define'                        || '' }} ^
+                ${{ matrix.flags == '-Dusequadmath'  && 'USE_QUADMATH=define'                     || '' }} ^
+                ${{ matrix.flags == '--32bit'        && 'WIN64=undef'                             || '' }} ^
+                -f GNUMakefile -j2 install
           else
             cd perl5
             sh Configure -des -Dinstallprefix=~/perl5 ${{ inputs.flags }}
