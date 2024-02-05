@@ -63,7 +63,7 @@ jobs:
           DATA: |
             {
               "perl": ["5.38.0", "5.36.0", "5.34.0"],
-              "flags": ["", "--64int", "--thread", "--ld", "--multi", "-Dusequadmath"]
+              "flags": ["", "-Dusethreads", "-Duselongdouble", "-Dusequadmath"]
             }
         id: matrix
         run: "jq -rn 'env.DATA | fromjson | @json \"matrix=\\(.)\"' > $GITHUB_OUTPUT\n"
