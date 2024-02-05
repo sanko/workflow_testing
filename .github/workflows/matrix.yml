@@ -34,9 +34,9 @@ jobs:
             gmake -Dinstallprefix=~/perl5 ${{ inputs.flags }} -j5 install
           else
             cd perl5
-            sh Configure -de -Dinstallprefix=~/perl5 ${{ inputs.flags }}
+            sh Configure -des -Dinstallprefix=~/perl5 ${{ inputs.flags }}
             make -j5
-            make install DESTDIR=~/perl5
+            make install
           fi
       - id: version
         name: Report Perl Version
