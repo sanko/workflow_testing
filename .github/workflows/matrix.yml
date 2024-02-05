@@ -39,7 +39,8 @@ jobs:
             pushd perl5
             sh Configure -de -Dinstallprefix=~/perl5 ${{ inputs.flags }}
             make -j5
-            make install
+            make install DESTDIR=~/perl5
+
           fi
 
           popd
