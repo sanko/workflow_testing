@@ -29,7 +29,7 @@ jobs:
         run: |
           git clone --depth 1 --branch v${{inputs.perl}} https://github.com/Perl/perl5.git
 
-          if [[ ${{ runner.os }} == 'Windows' ]]; then
+          if [[ '${{ runner.os }}' == 'Windows' ]]; then
             cd perl5/win32
             gmake CCHOME=C:/strawberry/c INST_TOP="~\\perl5"  ${{
               inputs.flags == '-Dusethreads'    && 'USE_ITHREADS=define    USE_MULTI=define' || '' }} ${{
