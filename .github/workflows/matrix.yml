@@ -23,13 +23,13 @@ jobs:
           C:\strawberry\perl\bin
           "@ |
             Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-      - if: "${{ steps.cache-perl.outputs.cache-hit != 'true' && inputs.os == 'windows-2019' }}"
+      - if: "${{ steps.cache-perl.outputs.cache-hit != 'true' }}"
         name: 'Build perl ${{ inputs.perl }} from source'
         run: |
           git clone --depth 1 --branch v${{inputs.perl}} https://github.com/Perl/perl5.git
-          
+
           pushd perl5${{ runner.os == 'Windows' && '\win32' || '' }}
-          
+
           gmake ${{ runner.os == 'Windows' && 'CCHOME=C:\strawberry\c' || '' }} INST_TOP=${{ runner.os == 'Windows' && 'CCHOME="C:\Users\runneradmin\perl5"' || '~/perl5/' }} ${{
               inputs.flags == '--64int'        && 'USE_64_BIT_INT=define'                   || '' }} ${{
               inputs.flags == '--thread'       && 'USE_ITHREADS=define    USE_MULTI=define' || '' }} ${{
@@ -37,7 +37,7 @@ jobs:
               inputs.flags == '--multi'        && 'USE_MULTI=define'                        || '' }} ${{
               inputs.flags == '-Dusequadmath'  && 'USE_QUADMATH=define'                     || '' }} ${{
               inputs.flags == '--32bit'        && 'WIN64=undef'                             || '' }} -f GNUMakefile -j2 install
-          
+
           popd
       - id: version
         name: Report Perl Version
@@ -45,9 +45,9 @@ jobs:
           ${{ runner.os == 'Windows' &&
           '[Environment]::SetEnvironmentVariable("PATH", "C:\Users\runneradmin\perl5\perlbrew\bin;$env:PATH")' ||
           'source ~/perl5/perlbrew/etc/bashrc' }}
-          
+
           perl -V
-          
+
           perl -e 'print $^V' > test-output-${{ inputs.os }}-${{ inputs.perl }}${{ inputs.flags }}.txt
       - name: Try it again...
         run: perl -V
