@@ -27,8 +27,8 @@ jobs:
         name: 'Build perl ${{ inputs.perl }} from source'
         run: |
           git clone --depth 1 --branch v${{inputs.perl}} https://github.com/Perl/perl5.git
-          
-          if [ ${{ runner.os == 'Windows' }} ]; then
+
+          if [[ ${{ runner.os == 'Windows' }} ]]; then
             pushd perl5\win32
             gmake CCHOME=C:\strawberry\c INST_TOP="C:\Users\runneradmin\perl5\perlbrew"  ${{
               inputs.flags == '--64int'        && 'USE_64_BIT_INT=define'                   || '' }} ${{
@@ -44,7 +44,7 @@ jobs:
             make test
             make install
           fi
-          
+
           popd
       - id: version
         name: Report Perl Version
@@ -52,9 +52,9 @@ jobs:
           ${{ runner.os == 'Windows' &&
           '[Environment]::SetEnvironmentVariable("PATH", "C:\Users\runneradmin\perl5\bin;$env:PATH")' ||
           'export PATH=~/perl5/bin:$PATH' }}
-          
+
           perl -V
-          
+
           perl -e 'print $^V' > test-output-${{ inputs.os }}-${{ inputs.perl }}${{ inputs.flags }}.txt
       - name: Try it again...
         run: perl -V
