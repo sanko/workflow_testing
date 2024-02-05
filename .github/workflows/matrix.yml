@@ -61,6 +61,8 @@ jobs:
           perl -V
 
           perl -e 'print $^V' > test-output-${{ inputs.os }}-${{ inputs.perl }}${{ inputs.flags }}.txt
+      - run: perl -V
+        name: Try it again...
       - name: Upload results as artifact
         uses: actions/upload-artifact@v4.0.0
         with:
