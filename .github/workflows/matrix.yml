@@ -51,11 +51,11 @@ jobs:
           '[Environment]::SetEnvironmentVariable("PATH", "C:\Users\runneradmin\perl5\bin;$env:PATH")' ||
           'export PATH=~/perl5/bin:$PATH' }}
 
-          ~/perl5/bin/perl${{inputs.perl}} -V
+          ~/perl5/bin/perl -V
 
-          ~/perl5/bin/perl${{inputs.perl}} -e 'print $^V' > test-output-${{ inputs.os }}-${{ inputs.perl }}${{ inputs.flags }}.txt
+          ~/perl5/bin/perl -e 'print $^V' > test-output-${{ inputs.os }}-${{ inputs.perl }}${{ inputs.flags }}.txt
       - name: Try it again...
-        run: ~/perl5/bin/perl${{inputs.perl}} -V
+        run: ~/perl5/bin/perl -V
       - name: Upload results as artifact
         uses: actions/upload-artifact@v4.0.0
         with:
