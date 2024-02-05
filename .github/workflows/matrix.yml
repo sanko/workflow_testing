@@ -43,10 +43,9 @@ jobs:
           fi
       - id: version
         name: Report Perl Version
+        shell: bash
         run: |
-          ${{ runner.os == 'Windows' &&
-          '[Environment]::SetEnvironmentVariable("PATH", "C:\Users\runneradmin\perl5\bin;$env:PATH")' ||
-          'export PATH=~/perl5/bin:$PATH' }}
+          export PATH=~/perl5/bin:$PATH
 
           ${{ runner.os == 'Windows' &&
           'perl -V' ||
