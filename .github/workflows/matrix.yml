@@ -63,6 +63,7 @@ jobs:
         if: "${{ inputs.os != 'windows-2019' }}"
         name: Get Perl Version
         run: |
+          source ~/perl5/perlbrew/etc/bashrc
           perl -V
           perl -v > test-output-${{ inputs.os }}-${{ inputs.perl }}${{ inputs.flags }}.txt
       - name: Upload results as artifact
