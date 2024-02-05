@@ -42,6 +42,7 @@ jobs:
 
           if [[ '${{ runner.os }}' == 'Windows' ]]; then
             echo Windows
+            ~/perl5/perlbrew/bin/perl -V
             set PATH=~/perl5/bin;%PATH%
           else
             echo Not Windows
