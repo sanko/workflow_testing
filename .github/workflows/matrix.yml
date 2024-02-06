@@ -58,7 +58,7 @@ jobs:
           if [[ '${{ runner.os }}' == 'Windows' ]]; then
             echo Windows
             ~/perl5/perlbrew/perls/cache-${{ inputs.os }}${{ inputs.perl }}${{ inputs.flags }}/bin/perl -V
-            \curl -L https://cpanmin.us | perl - App::cpanminus
+            \curl -L https://cpanmin.us | ~/perl5/perlbrew/perls/cache-${{ inputs.os }}${{ inputs.perl }}${{ inputs.flags }}/bin/perl - App::cpanminus
           else
             echo Not Windows
             ~/perl5/perlbrew/perls/cache-${{ inputs.os }}${{ inputs.perl }}${{ inputs.flags }}/bin/perl -V
