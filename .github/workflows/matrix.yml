@@ -52,7 +52,6 @@ jobs:
           perlbrew install --switch --verbose --as cache-${{ inputs.os }}${{ inputs.perl }}${{ inputs.flags }} -j 12 --notest --noman ${{ inputs.flags }} perl-${{ inputs.perl }}
       - id: version
         name: Report Perl Version
-        shell: bash
         run: |
 
           if [[ '${{ runner.os }}' == 'Windows' ]]; then
